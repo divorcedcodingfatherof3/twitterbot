@@ -43,7 +43,7 @@ Run regularly (e.g., with cron) to respond to new tweets with a fresh dice roll.
 
 You can run the bot as a scheduled Vercel Serverless Function:
 
-1. **Add the config file.** `vercel.json` defines a Python function at `api/run.py` and schedules a daily cron (9:00 UTC by default). Vercel Hobby plans only allow **one run per day**; to run more frequently, upgrade your plan and adjust the schedule accordingly. Vercel will auto-detect the Python runtime from the file extension, so no extra runtime pin is needed.
+1. **Add the config file.** `vercel.json` defines a Python function at `api/run.py` and a cron that hits it every 30 minutes. Adjust the cron schedule if you want a different cadence.
 2. **Set secrets in Vercel.** In your project’s **Settings → Environment Variables**, add:
    - `X_API_KEY`
    - `X_API_SECRET`
