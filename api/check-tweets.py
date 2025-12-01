@@ -1,30 +1,31 @@
 """HTTP endpoint to trigger a single bot run."""
 import json
+from http.server import BaseHTTPRequestHandler
 
 from lib.bot import env_runtime_params, run_bot_once
 
 
-def handler(request):  # type: ignore[unused-argument]
-    username, limit, state_file, dry_run, reply_backlog = env_runtime_params()
+class handler(BaseHTTPRequestHandler):  # Vercel forventer en klasse med dette navnet
+    def do_GET(self):
+        username, limit, state_file, dry_run, reply_backlog = env_runtime_params()
 
-    try:
-        run_bot_once(
-            username=username,
-            limit=limit,
-            state_file=state_file,
-            dry_run=dry_run,
-            reply_backlog=reply_backlog,
-        )
-    except Exception as exc:  # pragma: no cover - returned in HTTP response
-        print(f"Failed to run bot: {exc}")
-        return {
-            "statusCode": 500,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"ok": False}),
-        }
+        try:
+            run_bot_once(
+                username=username,
+                limit=limit,
+                state_file=state_file,
+                dry_run=dry_run,
+                reply_backlog=reply_backlog,
+            )
+            status_code = 200
+            body = {"ok": True}
+        except Exception as exc:  # pragma: no cover - returneres i HTTP-respons
+            print(f"Failed to run bot: {exc}")
+            status_code = 500
+            body = {"ok": False, "error": str(exc)}
 
-    return {
-        "statusCode": 200,
-        "headers": {"Content-Type": "application/json"},
-        "body": json.dumps({"ok": True}),
-    }
+        # Svar til klienten (Vercel bruker dette som HTTP-respons)
+        self.send_response(status_code)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(body).encode("utf-8"))
