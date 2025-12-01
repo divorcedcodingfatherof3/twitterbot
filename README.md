@@ -33,7 +33,7 @@ python bot.py --limit 5
 Arguments:
 - `--username` – account to monitor without the `@` (default `sponsetavnav`).
 - `--limit` – how many recent tweets to scan for a reply.
-- `--state-file` – path to store tweet IDs already replied to (default `data/replied.json`).
+- `--state-file` – path to store tweet IDs already replied to (default `data/replied.json`, or `STATE_FILE` when set via env for serverless).
 - `--dry-run` – print planned replies without posting them.
 - `--reply-backlog` – on a brand-new state file, reply to the currently visible tweets. By default the bot *skips* the backlog, baselines from the latest tweet, and only replies to future posts so it does not spam older tweets.
 
@@ -41,9 +41,9 @@ Run regularly (e.g., with cron) to respond to new tweets with a fresh dice roll.
 
 ## Deploying on Vercel
 
-You can run the bot as a scheduled Vercel Serverless Function:
+You can run the bot as an on-demand Vercel Serverless Function and trigger it from GitHub Actions or any HTTP client:
 
-1. **Add the config file.** `vercel.json` defines a Python function at `api/run.py` and a cron that hits it every 30 minutes. Adjust the cron schedule if you want a different cadence.
+1. **Configure functions.** `vercel.json` defines Python functions at `api/run.py` (legacy endpoint) and `api/check-tweets.py` (new triggerable endpoint). Vercel auto-detects the Python runtime from the file extension.
 2. **Set secrets in Vercel.** In your project’s **Settings → Environment Variables**, add:
    - `X_API_KEY`
    - `X_API_SECRET`
@@ -57,5 +57,28 @@ You can run the bot as a scheduled Vercel Serverless Function:
    or connect the repository in the Vercel dashboard and trigger a deploy.
 
 Notes:
-- The serverless handler lives at `api/run.py` and returns JSON so you can see invocation results in Vercel logs.
+- The serverless handlers live at `api/run.py` and `api/check-tweets.py` and return JSON so you can see invocation results in Vercel logs.
 - The default `STATE_FILE` writes to `/tmp`, which is ephemeral in serverless environments. For durable tracking of replied tweets you should back the state file with a persistent store (e.g., Vercel KV/Redis or S3) and point `STATE_FILE` to a mounted path or swap the persistence implementation to use that service. Without durable state, the bot will baseline from the latest tweet on each cold start to avoid replying to old posts.
+
+## GitHub Actions ping (without Vercel cron)
+
+Instead of Vercel Cron, use a GitHub Actions workflow to hit the public endpoint every minute:
+
+```yaml
+name: Ping Twitter bot
+
+on:
+  schedule:
+    - cron: "*/1 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger bot endpoint
+        run: |
+          curl -sS https://twitterbot-dylan-scott-meschners-projects.vercel.app/api/check-tweets
+```
+
+If your deployment hostname differs, swap in the correct domain. Keep secrets in Vercel; the workflow only needs network access to the public endpoint.
