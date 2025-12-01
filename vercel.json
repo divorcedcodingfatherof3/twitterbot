@@ -1,12 +1,15 @@
 {
   "functions": {
     "api/run.py": {
-      "memory": 1024,
-      "maxDuration": 10
-    },
-    "api/check-tweets.py": {
+      "runtime": "python3.11",
       "memory": 1024,
       "maxDuration": 10
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/run",
+      "schedule": "*/30 * * * *"
+    }
+  ]
 }
