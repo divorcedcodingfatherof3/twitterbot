@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "api/run.py": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/run",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}
