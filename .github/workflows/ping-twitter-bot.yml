@@ -1,0 +1,14 @@
+name: Ping Twitter bot
+
+on:
+  schedule:
+    - cron: "*/1 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger bot endpoint
+        run: |
+          curl -sS https://vercel.com/dylan-scott-meschners-projects/twitterbot/api/check-tweets
