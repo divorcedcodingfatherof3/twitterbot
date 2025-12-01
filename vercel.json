@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "api/run.py": {
+      "memory": 1024,
+      "maxDuration": 10
+    },
+    "api/check-tweets.py": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
+}
