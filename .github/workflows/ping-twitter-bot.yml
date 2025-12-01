@@ -11,4 +11,4 @@ jobs:
     steps:
       - name: Trigger bot endpoint
         run: |
-          curl -sS https://vercel.com/dylan-scott-meschners-projects/twitterbot/api/check-tweets
+          curl -sS https://<your-vercel-project>.vercel.app/api/check-tweets

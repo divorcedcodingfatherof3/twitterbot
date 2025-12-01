@@ -1,7 +1,16 @@
 """Vercel serverless entrypoint to run the dice-reply bot."""
 import json
+import os
+from pathlib import Path
 
-from lib.bot import env_runtime_params, run_bot_once
+from bot import DEFAULT_USERNAME, run_bot
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
 def handler(request):  # type: ignore[unused-argument]
@@ -15,10 +24,14 @@ def handler(request):  # type: ignore[unused-argument]
     - DRY_RUN: if truthy, only log intended replies
     - REPLY_BACKLOG: if truthy, reply to the current backlog when no state exists
     """
-    username, limit, state_file, dry_run, reply_backlog = env_runtime_params()
+    username = os.getenv("TARGET_USERNAME", DEFAULT_USERNAME)
+    limit = int(os.getenv("TWEET_LIMIT", "5"))
+    state_file = Path(os.getenv("STATE_FILE", "/tmp/replied.json"))
+    dry_run = _env_bool("DRY_RUN", False)
+    reply_backlog = _env_bool("REPLY_BACKLOG", False)
 
     try:
-        run_bot_once(
+        run_bot(
             username=username,
             limit=limit,
             state_file=state_file,
